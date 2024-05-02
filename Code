@@ -1,0 +1,63 @@
+# IMAGE-CAPTION-GENERATOR
+import matplotlib.pyplot as plt
+import pandas as pd
+import os
+from PIL import Image  # Import Image from PIL library
+
+def visualize_data(images, captions, target_size=(224, 224)):
+    # Process each image along with its captions
+    for image_filename, caption in zip(images, captions):
+        # Load and resize the image
+        img_path = os.path.join("C:\\project\\images\\img", image_filename)
+        img = Image.open(img_path)
+        img = img.resize(target_size)  # Resize the image
+        img = img.convert('RGB')  # Ensure image is in RGB format
+
+        # Display the resized image
+        plt.imshow(img)
+        plt.axis('off')
+        plt.title('Image: ' + image_filename)  # Set the image title to include filename
+        plt.show()
+
+        # Display the selected caption for the image
+        print("-", caption)
+        print("\n")
+
+def select_most_accurate_caption(captions_group):
+    # Calculate relevance scores based on caption lengths
+    captions_group['relevance_score'] = captions_group['caption'].apply(lambda x: len(x.split()))
+
+    # Select caption with the highest relevance score
+    most_accurate_caption = captions_group.sort_values(by='relevance_score', ascending=False).iloc[0]['caption']
+    return most_accurate_caption
+
+def preprocess_data():
+    # Read the caption file
+    caption_file = "C:\\project\\caption\\captions.txt"  # Update with your caption file path
+    captions_df = pd.read_csv(caption_file)
+
+    # Group captions by image filename
+    grouped_captions = captions_df.groupby('image')
+
+    images = []
+    captions = []
+
+    for image_filename, captions_group in grouped_captions:
+        images.append(image_filename)
+        # Select the most accurate caption based on a specific criterion
+        most_accurate_caption = select_most_accurate_caption(captions_group)
+        captions.append(most_accurate_caption)
+
+    return images, captions
+
+def main():
+    # Preprocess the data
+    print("Preprocessing data...")
+    images, captions = preprocess_data()
+
+    # Visualize the data with resized images
+    print("Visualizing data...")
+    visualize_data(images, captions, target_size=(224, 224))  # Set the target size for resizing
+
+if __name__ == "__main__":
+    main()
